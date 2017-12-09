@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/one_thread_menu"
+        android:title="1 thread"
+        />
+    <item
+        android:id="@+id/two_thread_menu"
+        android:title="2 threads" />
+    <item
+        android:id="@+id/three_thread_menu"
+        android:title="3 threads" />
+    <item
+        android:id="@+id/four_thread_menu"
+        android:title="4 threads" />
+</menu>
