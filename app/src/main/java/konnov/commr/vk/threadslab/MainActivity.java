@@ -2,34 +2,30 @@ package konnov.commr.vk.threadslab;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "myLogs";
-    private final int maximumValue = 100;
-    private TextView textView;
-    private TextView elapsedTime;
-    private int [][] matrixOne;
-    private int [][] matrixTwo;
-    private int [][] newMatrix;
-    private int numberOfRowsAndColumns;
-    private EditText rowsAndColumnsNumberEditText;
-    private Button button;
-    private boolean theNumberOfElementsIsHuge;
-    private int numberOfThreads = 4;
+    private final int maximumValue = 100; //максимальное значение рандома для каждого элемента матрицы
+    private TextView textView; // текствью с матрицей получившейся при умножении наших матриц
+    private TextView elapsedTime; // время потраченное на умножение
+    private int [][] matrixOne; // первая матрица
+    private int [][] matrixTwo; // вторая
+    private int [][] newMatrix; // матрица которая = первая матрица * вторая матрица
+    private int numberOfRowsAndColumns;  // количество строк и столбцов для matrixOne и matrixTwo
+    private EditText rowsAndColumnsNumberEditText; // эдит текст для ввода numberOfRowsAndColumns
+    private Button button; // кнопка при нажатии на которую происходит умножение
+    private final int maximumNumberOfRowsToOutput = 50; // максимальное количество строк/столбцов при котором происходит вывод матрицы newMatrix
+    private int numberOfThreads = 4; // количество поток по умолчанию
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,9 +39,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    public void executeBtnClicked(View view){
-        button.setVisibility(View.INVISIBLE);
-        initialization();
+    public void executeBtnClicked(View view){ // когда нажали на кнопку
+        button.setVisibility(View.INVISIBLE); // сделал это потому что хотел убрать кнопку во время вычисления, но по-видимому это не работает хз
+        initialization(); // инициализация матриц рандомными элементами
         executeThreads();
     }
 
@@ -53,30 +49,28 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void executeThreads(){
-        final int [] initalValue = new int[4];
-        final int[] finalValue = new int[4];
-        switch (numberOfThreads){
-            case 1:
+        final int [] initalValue = new int[4]; //начальный индекс матрицы
+        final int[] finalValue = new int[4]; // конечный индекс матрицы
+        switch (numberOfThreads){ // смотрим какое количество потоков выбрал пользователь (если он ничего не выбрал, то по умолчанию это 4)
+            case 1: // если один поток, то умножаем все элементы матрицы
                 initalValue[0] = 0;
                 finalValue[0] = numberOfRowsAndColumns;
                 break;
-            case 2:
+            case 2: // если два, то разбиваем матрицу на два, чтобы оба потока считали половину матрицы
                 initalValue[0] = 0;
                 initalValue[1] = numberOfRowsAndColumns/2;
                 finalValue[0] = numberOfRowsAndColumns/2;
                 finalValue[1] = numberOfRowsAndColumns;
                 break;
-            case 3:
+            case 3: // разбиваем на три
                 initalValue[0] = 0;
                 initalValue[1] = numberOfRowsAndColumns/3;
                 initalValue[2] = (numberOfRowsAndColumns * 2)/3;
                 finalValue[0] = numberOfRowsAndColumns/3;
                 finalValue[1] = (numberOfRowsAndColumns * 2)/3;
                 finalValue[2] = numberOfRowsAndColumns;
-
-
                 break;
-            case 4:
+            case 4: //  на 4
                 initalValue[0] = 0;
                 initalValue[1] = numberOfRowsAndColumns/4;
                 initalValue[2] = numberOfRowsAndColumns/2;
@@ -88,11 +82,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
-        final Thread thread = new Thread(new Runnable() {
+        final Thread thread = new Thread(new Runnable() { // первый поток
             @Override
             public void run() {
                 try {
-                    for (int i = 0; i < numberOfRowsAndColumns; i++) {
+                    for (int i = 0; i < numberOfRowsAndColumns; i++) { // умножаем все от начала до finalValue[0]
                         for (int j = initalValue[0]; j < finalValue[0]; j++) {
                             for (int k = initalValue[0]; k < finalValue[0]; k++) {
                                 newMatrix[i][j] += matrixOne[i][k] * matrixTwo[k][j];
@@ -107,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        final Thread threadTwo = new Thread(new Runnable() {
+        final Thread threadTwo = new Thread(new Runnable() {//второй поток
             @Override
             public void run() {
                 try {
@@ -126,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        final Thread threadThree = new Thread(new Runnable() {
+        final Thread threadThree = new Thread(new Runnable() { // третий
             @Override
             public void run() {
                 try {
@@ -145,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        final Thread threadFour = new Thread(new Runnable() {
+        final Thread threadFour = new Thread(new Runnable() {  //четвертый
             @Override
             public void run() {
                 try {
@@ -164,9 +158,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        final long startTime = System.nanoTime();
+        final long startTime = System.nanoTime(); // начинаем отсчитывать время умножения
 
-        switch (numberOfThreads){
+        switch (numberOfThreads){ // запускаем потоки исходя из того сколько потоков выбрал пользователь
             case 1:
                 thread.start();
                 break;
@@ -187,44 +181,47 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
-        final Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean threadsAreDone = false;
-                        switch (numberOfThreads){
-                            case 1:
-                                if(!thread.isAlive())
-                                    threadsAreDone = true;
-                                break;
-                            case 2:
-                                if(!thread.isAlive() && !threadTwo.isAlive())
-                                    threadsAreDone = true;
-                                break;
-                            case 3:
-                                if(!thread.isAlive() && !threadTwo.isAlive() && !threadThree.isAlive())
-                                    threadsAreDone = true;
-                                break;
-                            case 4:
-                                if(!thread.isAlive() && !threadTwo.isAlive() && !threadThree.isAlive() && !threadFour.isAlive())
-                                    threadsAreDone = true;
-                                break;
-                        }
-                        if(threadsAreDone) {
-                            long stopTime = System.nanoTime();
-                            elapsedTime.setText("Execution time: " + String.valueOf((double) (stopTime - startTime) / 1000000000L) + " sec");
-                            matrixOutput();
-                            button.setVisibility(View.VISIBLE);
-                            timer.cancel();
-                        }
-                    }
-                });
-            }
-        }, 0, 100);
 
+        switch (numberOfThreads){ // ждем завершение выполнения всех потоков
+            case 1:
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case 2:
+                try {
+                    thread.join();
+                    threadTwo.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case 3:
+                try {
+                    thread.join();
+                    threadTwo.join();
+                    threadThree.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
+            case 4:
+                try {
+                    thread.join();
+                    threadTwo.join();
+                    threadThree.join();
+                    threadFour.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                break;
+        }
+            long stopTime = System.nanoTime(); //берем конечное время
+            elapsedTime.setText("Execution time: " + String.valueOf((double) (stopTime - startTime) / 1000000000L) + " sec");
+            matrixOutput(); //  выводим матрицу
+            button.setVisibility(View.VISIBLE);
 
     }
 
@@ -236,10 +233,9 @@ public class MainActivity extends AppCompatActivity {
     private void initialization(){
         if(rowsAndColumnsNumberEditText.getText().toString().length() != 0  &&
                 !rowsAndColumnsNumberEditText.getText().toString().equals("0")) {
-            numberOfRowsAndColumns = Integer.parseInt(rowsAndColumnsNumberEditText.getText().toString());
+            numberOfRowsAndColumns = Integer.parseInt(rowsAndColumnsNumberEditText.getText().toString()); // проверяем, что пользователь ввел корректное число элементов в эдит текст
             newMatrix = new int[numberOfRowsAndColumns][numberOfRowsAndColumns];
-            theNumberOfElementsIsHuge = numberOfRowsAndColumns>200;
-            randomizingMatrix();
+            randomizingMatrix(); // рандомим
         }
         else{
             Toast.makeText(this, "Input the number of rows and columns", Toast.LENGTH_SHORT).show();
@@ -266,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void matrixOutput(){
-        if(!theNumberOfElementsIsHuge) {
+        if(numberOfRowsAndColumns<= maximumNumberOfRowsToOutput) {
             textView.setText("");
             for (int i = 0; i < numberOfRowsAndColumns; i++) {
                 for (int j = 0; j < numberOfRowsAndColumns; j++) {
@@ -290,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item) { // смотрим сколько потоков выбрал пользователь
         switch (item.getItemId()){
             case R.id.one_thread_menu:
                 numberOfThreads = 1;
